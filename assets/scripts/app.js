@@ -39,48 +39,53 @@ adjustHealthBars(chosenMaxLife);
 
 //write differents events fo a log
 function writeToLog(eve, val, monsterHealth, playerHealth) {
-  let logEntry;
-  if (eve === LOG_EVENT_PLAYER_ATTACK) {
-    // variable only available in this if part statment
-    logEntry = {
-      event: eve,
-      value: val,
-      target: 'MONSTER',
-      finalMOnsterHealth: monsterHealth,
-      finalPlayerHealth: playerHealth
-    };
-  } else if (eve === LOG_EVENT_PLAYER_STRONG_ATTACK) {
-      logEntry = {
-        event: eve,
-        value: val,
-        target: 'MONSTER',
-        finalMOnsterHealth: monsterHealth,
-        finalPlayerHealth: playerHealth
-  };
-} else if (eve === LOG_EVENT_MONSTER_ATTACK) {
-    logEntry = {
-      event: eve,
-      value: val,
-      target: 'PLAYER',
-      finalMOnsterHealth: monsterHealth,
-      finalPlayerHealth: playerHealth
-  };
-      battleLog.push(logEntry);
-} else if ( eve === LOG_EVENT_PLAYER_HEAL) {
-   logEntry = {
-      event: eve,
-      value: val,
-      target: 'PLAYER',
-      finalMOnsterHealth: monsterHealth,
-      finalPlayerHealth: playerHealth
-  };
-} else if ( eve === LOG_EVENT_GAME_OVER) {
-   logEntry = {
+  let logEntry = {
       event: eve,
       value: val,
       finalMOnsterHealth: monsterHealth,
       finalPlayerHealth: playerHealth
     };
+    switch (eve) {
+      case  LOG_EVENT_PLAYER_ATTACK:
+        logEntry.target = 'MONSTER';
+        break;
+      case LOG_EVENT_PLAYER_STRONG_ATTACK:
+        logEntry = {
+          event: eve,
+          value: val,
+          target: 'MONSTER',
+          finalMOnsterHealth: monsterHealth,
+          finalPlayerHealth: playerHealth
+      };
+       break;
+      case LOG_EVENT_MONSTER_ATTACK:
+         logEntry = {
+            event: eve,
+            value: val,
+            target: 'PLAYER',
+            finalMOnsterHealth: monsterHealth,
+            finalPlayerHealth: playerHealth
+      };
+        break;
+      case LOG_EVENT_PLAYER_HEAL:
+         logEntry = {
+            event: eve,
+            value: val,
+            target: 'PLAYER',
+            finalMOnsterHealth: monsterHealth,
+            finalPlayerHealth: playerHealth
+      };
+        break;
+      case LOG_EVENT_GAME_OVER:
+          logEntry = {
+            event: eve,
+            value: val,
+            finalMOnsterHealth: monsterHealth,
+            finalPlayerHealth: playerHealth
+    };
+        break;
+      default:
+        logEntry = {};
   }
    battleLog.push(logEntry);
 }
@@ -209,8 +214,15 @@ function strongAttackHandler() {
 }
 
 
-function printLogHandler(){
-  console.log(battleLog);
+function printLogHandler() {
+  // have acces to the index as well
+//  for  (let i = 0; i < battleLog.length; i++) {
+//    console.log(battleLog[i]);
+// } // have acces to the index as well
+
+for (const logEntry of battleLog) {
+ console.log(logEntry);
+  }
 }
 
 
