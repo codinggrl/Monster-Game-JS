@@ -11,13 +11,19 @@ const HEAL_VALUE = 20;
 // WE CAN ALSO WORK WITH NUMBERS
 const MODE_ATTACK = 'ATTACK'; // MODE_ATTACK = 0
 const MODE_STRONG_ATTACK = 'STRONG_ATTACK'; // MODE_STRONG_ATTACK = 1
-
+const LOG_EVENT_PLAYER_ATTACK = 'PLAYER_ATTACK';
+const LOG_EVENT_PLAYER_STRONG_ATTACK = 'PLAYER_STRONG_ATTACK';
+const LOG_EVENT_MONSTER_ATTACK = 'MONSTER_ATTACK';
+const LOG_EVENT_PLAYER_HEAL ='PLAYER_HEAL';
+const LOG_EVENT_GAME_OVER = 'GAME_OVER';
 
 // dialog box for user, returns the value the user entered
  const enteredValue = prompt('Maximum life for u and the monster.','100');
 
+
 //hard coded starting values
 let chosenMaxLife = parseInt(enteredValue);
+let battleLog = [];
 // not a valid nuber Nan, parseInt will yield if it is not a number
 if (isNaN(chosenMaxLife) || chosenMaxLife <= 0) {
   chosenMaxLife = 100;
@@ -31,6 +37,54 @@ let hasBonusLife = true;
 // calling the function from vendor.js with chosenMaxLife as a paramether
 adjustHealthBars(chosenMaxLife);
 
+//write differents events fo a log
+function writeToLog(eve, val, monsterHealth, playerHealth) {
+  let logEntry;
+  if (eve === LOG_EVENT_PLAYER_ATTACK) {
+    // variable only available in this if part statment
+    logEntry = {
+      event: eve,
+      value: val,
+      target: 'MONSTER',
+      finalMOnsterHealth: monsterHealth,
+      finalPlayerHealth: playerHealth
+    };
+  } else if (eve === LOG_EVENT_PLAYER_STRONG_ATTACK) {
+      logEntry = {
+        event: eve,
+        value: val,
+        target: 'MONSTER',
+        finalMOnsterHealth: monsterHealth,
+        finalPlayerHealth: playerHealth
+  };
+} else if (eve === LOG_EVENT_MONSTER_ATTACK) {
+    logEntry = {
+      event: eve,
+      value: val,
+      target: 'PLAYER',
+      finalMOnsterHealth: monsterHealth,
+      finalPlayerHealth: playerHealth
+  };
+      battleLog.push(logEntry);
+} else if ( eve === LOG_EVENT_PLAYER_HEAL) {
+   logEntry = {
+      event: eve,
+      value: val,
+      target: 'PLAYER',
+      finalMOnsterHealth: monsterHealth,
+      finalPlayerHealth: playerHealth
+  };
+} else if ( eve === LOG_EVENT_GAME_OVER) {
+   logEntry = {
+      event: eve,
+      value: val,
+      finalMOnsterHealth: monsterHealth,
+      finalPlayerHealth: playerHealth
+    };
+  }
+   battleLog.push(logEntry);
+}
+
 function reset() {
   let currentMonsterHealth = chosenMaxLife;//or 100
   let currentPlayerHealth = chosenMaxLife;
@@ -41,6 +95,12 @@ function endRound() {
   const initialPlayerHealth = currentPlayerHealth;
   const playerDamage = dealPlayerDamage(MONSTER_ATTACK_VALUE);
   currentPlayerHealth -= playerDamage;
+  writeToLog(
+    LOG_EVENT_MONSTER_ATTACK,
+    playerDamage,
+    currentMonsterHealth,
+    currentPlayerHealth
+    );
 
   if (currentPlayerHealth <= 0 && hasBonusLife) {
     hasBonusLife = false;
@@ -53,13 +113,31 @@ function endRound() {
 
   if (currentMonsterHealth <= 0 && currentPlayerHealth > 0) {
       alert('You won!');
-      reset();// OR
+      //reset();// OR
+       writeToLog(
+        LOG_EVENT_GAME_OVER,
+        'PLAYER_WON',
+        currentMonsterHealth,
+        currentPlayerHealth
+        );
   } else if (currentPlayerHealth <= 0 && currentMonsterHealth > 0) {
       alert('You lost!');
-      reset();
+      //reset();
+       writeToLog(
+        LOG_EVENT_GAME_OVER,
+        'MONSTER_WON',
+        currentMonsterHealth,
+        currentPlayerHealth
+        );
   } else if ( currentPlayerHealth <= 0 && currentMonsterHealth <=0){
       alert('You have a draw!');
-      reset();
+      //reset();
+       writeToLog(
+        LOG_EVENT_GAME_OVER,
+        'A_DRAW',
+        currentMonsterHealth,
+        currentPlayerHealth
+        );
   }
 }
 
@@ -73,17 +151,30 @@ if (currentMonsterHealth <= 0 || currentPlayerHealth <= 0 ){
 */
 
 function attackMonster(attackMode) {
-let maxDamage;//dynamic because of the condition
- if (attackMode === 'MODE_ATTACK') {
+const maxDamage = attackMode === MODE_ATTACK ? ATTACK_VALUE : STRONG_ATTACK_VALUE;//dynamic because of the condition
+const logEvent = attackMode === MODE_ATTACK ? LOG_EVENT_PLAYER_ATTACK : LOG_EVENT_PLAYER_STRONG_ATTACK;
+
+ /*if (attackMode === 'MODE_ATTACK') {
     maxDamage = ATTACK_VALUE;
-    //could be written as maxDamage === 'STRONG_ATTACK_VALUE', LATER MODE_STRONG_ATTACK
-  } else {
+    logEvent = LOG_EVENT_PLAYER_ATTACK
+  } else if (attackMode === MODE_STRONG_ATTACK) {
     maxDamage = STRONG_ATTACK_VALUE;
-  }
+    logEvent = LOG_EVENT_PLAYER_STRONG_ATTACK
+  }*/
+
+
   const damage = dealMonsterDamage(maxDamage);//dynamic, before it was ATTACK_VALUE, DEPENDING ON MODE AND CONDITION
   currentMonsterHealth -= damage;//
-  endRound();
+   writeToLog(
+        logEvent,
+        damage,
+        currentMonsterHealth,
+        currentPlayerHealth
+
+  );
+    endRound();
 }
+
 // heal player
 function healPlayerHandler() {
   let healValue;//dynamic because of the condition
@@ -96,7 +187,13 @@ function healPlayerHandler() {
 
   increasePlayerHealth(healValue);//dynamic, before it was HEAL_VALUE
   currentPlayerHealth += healValue;// dynamic,before it was HEAL_VALUE
-  endRound();
+    writeToLog(
+        LOG_EVENT_PLAYER_HEAL,
+        healValue,
+        currentMonsterHealth,
+        currentPlayerHealth
+ );
+     endRound();
 }
 
 //functions that lovers the bar value
@@ -112,11 +209,16 @@ function strongAttackHandler() {
 }
 
 
+function printLogHandler(){
+  console.log(battleLog);
+}
+
+
 // event listeners
 attackBtn.addEventListener('click', attackHandler);
 strongAttackBtn.addEventListener('click', strongAttackHandler);
 healBtn.addEventListener('click', healPlayerHandler);
-
+logBtn.addEventListener('click', printLogHandler);
 
 
 
